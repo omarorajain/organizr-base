@@ -17,12 +17,15 @@ ENV PS1="$(whoami)@$(hostname):$(pwd)$ " \
   HOME="/root" \
   TERM="xterm"
 
-RUN \
+# Update packages and install build dependencies
+RUN echo "**** install build packages ****" && \
   apk update && \
-  echo "**** install build packages ****" && \
+  apk upgrade && \
   apk add --no-cache --virtual=build-dependencies \
-    tar && \
-  echo "**** install runtime packages ****" && \
+    tar
+
+# Install runtime packages
+RUN echo "**** install runtime packages ****" && \
   apk add --no-cache \
     apache2-utils \
     bash \
@@ -56,38 +59,52 @@ RUN \
     zlib \
     tzdata && \
   apk add --no-cache  --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing \
-    php81-pecl-xmlrpc && \
-  echo "**** add s6 overlay ****" && \
+    php81-pecl-xmlrpc
+
+# Add s6 overlay
+RUN echo "**** add s6 overlay ****" && \
   curl -o /tmp/s6-overlay.tar.gz -L \
     "https://github.com/just-containers/s6-overlay/releases/download/v${S6_REL}/s6-overlay-${S6_ARCH}.tar.gz" && \
-  tar xfz /tmp/s6-overlay.tar.gz -C / && \
-  echo "**** create abc user and make folders ****" && \
+  tar xfz /tmp/s6-overlay.tar.gz -C /
+
+# Create user and make folders
+RUN echo "**** create abc user and make folders ****" && \
   groupmod -g 1000 users && \
   useradd -u 911 -U -d /config -s /bin/false abc && \
   usermod -G users abc && \
   mkdir -p \
     /config \
-    /defaults && \
-  echo "**** configure nginx ****" && \
+    /defaults
+
+# Configure Nginx
+RUN echo "**** configure nginx ****" && \
   echo 'fastcgi_param  SCRIPT_FILENAME $document_root$fastcgi_script_name;' >> \
   /etc/nginx/fastcgi_params && \
-    rm -f /etc/nginx/conf.d/default.conf && \
-  echo "**** fix logrotate ****" && \
+  rm -f /etc/nginx/conf.d/default.conf
+
+# Fix logrotate
+RUN echo "**** fix logrotate ****" && \
   sed -i "s#/var/log/messages {}.*# #g" /etc/logrotate.conf && \
-  sed -i 's#/usr/sbin/logrotate /etc/logrotate.conf#/usr/sbin/logrotate /etc/logrotate.conf -s /config/log/logrotate.status#g' /etc/periodic/daily/logrotate && \
-  echo "**** enable PHP-FPM ****" && \
+  sed -i 's#/usr/sbin/logrotate /etc/logrotate.conf#/usr/sbin/logrotate /etc/logrotate.conf -s /config/log/logrotate.status#g' /etc/periodic/daily/logrotate
+
+# Enable and configure PHP-FPM
+RUN echo "**** enable PHP-FPM ****" && \
   sed -i "s#listen = 127.0.0.1:9000#listen = '/var/run/php8-fpm.sock'#g" /etc/php81/php-fpm.d/www.conf && \
   sed -i "s#;listen.owner = nobody#listen.owner = abc#g" /etc/php81/php-fpm.d/www.conf && \
   sed -i "s#;listen.group = abc#listen.group = abc#g" /etc/php81/php-fpm.d/www.conf && \
-  sed -i "s#;listen.mode = nobody#listen.mode = 0660#g" /etc/php81/php-fpm.d/www.conf && \
-  echo "**** set our recommended defaults ****" && \
+  sed -i "s#;listen.mode = nobody#listen.mode = 0660#g" /etc/php81/php-fpm.d/www.conf
+
+# Set recommended defaults
+RUN echo "**** set our recommended defaults ****" && \
   sed -i "s#pm = dynamic#pm = ondemand#g" /etc/php81/php-fpm.d/www.conf && \
   sed -i "s#pm.max_children = 5#pm.max_children = 4000#g" /etc/php81/php-fpm.d/www.conf && \
   sed -i "s#pm.start_servers = 2#;pm.start_servers = 2#g" /etc/php81/php-fpm.d/www.conf && \
   sed -i "s#;pm.process_idle_timeout = 10s;#pm.process_idle_timeout = 10s;#g" /etc/php81/php-fpm.d/www.conf && \
   sed -i "s#;pm.max_requests = 500#pm.max_requests = 0#g" /etc/php81/php-fpm.d/www.conf && \
-  sed -i "s#zlib.output_compression = Off#zlib.output_compression = On#g" /etc/php81/php.ini && \
-  echo "**** cleanup ****" && \
+  sed -i "s#zlib.output_compression = Off#zlib.output_compression = On#g" /etc/php81/php.ini
+
+# Cleanup
+RUN echo "**** cleanup ****" && \
   apk del --purge \
     build-dependencies && \
   rm -rf \
