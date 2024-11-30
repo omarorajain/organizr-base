@@ -31,11 +31,11 @@ RUN printf "%s%s%s\n" \
   "http://nginx.org/packages/alpine/v" \
   `egrep -o '^[0-9]+\.[0-9]+' /etc/alpine-release` \
   "/main" \
-  | sudo tee -a /etc/apk/repositories
+  | tee -a /etc/apk/repositories
 
 # Import Nginx Signing Key
 RUN curl -o /tmp/nginx_signing.rsa.pub https://nginx.org/keys/nginx_signing.rsa.pub
-RUN sudo mv /tmp/nginx_signing.rsa.pub /etc/apk/keys/
+RUN mv /tmp/nginx_signing.rsa.pub /etc/apk/keys/
 
 # Install runtime packages
 RUN echo "**** install runtime packages ****" && \
@@ -47,6 +47,7 @@ RUN echo "**** install runtime packages ****" && \
     libressl3.8-libssl \
     logrotate \
     nano \
+    nginx \
     php83 \
     php83-curl \
     php83-fileinfo \
