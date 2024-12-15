@@ -1,5 +1,5 @@
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE:-library/alpine:3.20}
+FROM ${BASE_IMAGE:-library/alpine:3.21}
 
 ENV S6_REL=2.2.0.3 S6_ARCH=aarch64 S6_BEHAVIOUR_IF_STAGE2_FAILS=2 TZ=Etc/UTC
 
@@ -44,27 +44,27 @@ RUN echo "**** install runtime packages ****" && \
     bash \
     coreutils \
     git \
-    libressl3.8-libssl \
+    libressl4.0-libssl \
     logrotate \
     nano \
     nginx \
-    php83 \
-    php83-curl \
-    php83-fileinfo \
-    php83-fpm \
-    php83-ftp \
-    php83-ldap \
-    php83-mbstring \
-    php83-mysqli \
-    php83-openssl \
-    php83-pdo_sqlite \
-    php83-session \
-    php83-simplexml \
-    php83-sqlite3 \
-    php83-tokenizer \
-    php83-xmlwriter \
-    php83-xml \
-    php83-zip \
+    php84 \
+    php84-curl \
+    php84-fileinfo \
+    php84-fpm \
+    php84-ftp \
+    php84-ldap \
+    php84-mbstring \
+    php84-mysqli \
+    php84-openssl \
+    php84-pdo_sqlite \
+    php84-session \
+    php84-simplexml \
+    php84-sqlite3 \
+    php84-tokenizer \
+    php84-xmlwriter \
+    php84-xml \
+    php84-zip \
     shadow \
     zlib \
     tzdata
@@ -99,19 +99,19 @@ RUN echo "**** fix logrotate ****" && \
 
 # Enable and configure PHP-FPM
 RUN echo "**** enable PHP-FPM ****" && \
-  sed -i "s#listen = 127.0.0.1:9000#listen = '/var/run/php8-fpm.sock'#g" /etc/php83/php-fpm.d/www.conf && \
-  sed -i "s#;listen.owner = nobody#listen.owner = abc#g" /etc/php83/php-fpm.d/www.conf && \
-  sed -i "s#;listen.group = abc#listen.group = abc#g" /etc/php83/php-fpm.d/www.conf && \
-  sed -i "s#;listen.mode = nobody#listen.mode = 0660#g" /etc/php83/php-fpm.d/www.conf
+  sed -i "s#listen = 127.0.0.1:9000#listen = '/var/run/php8-fpm.sock'#g" /etc/php84/php-fpm.d/www.conf && \
+  sed -i "s#;listen.owner = nobody#listen.owner = abc#g" /etc/php84/php-fpm.d/www.conf && \
+  sed -i "s#;listen.group = abc#listen.group = abc#g" /etc/php84/php-fpm.d/www.conf && \
+  sed -i "s#;listen.mode = nobody#listen.mode = 0660#g" /etc/php84/php-fpm.d/www.conf
 
 # Set recommended defaults
 RUN echo "**** set our recommended defaults ****" && \
-  sed -i "s#pm = dynamic#pm = ondemand#g" /etc/php83/php-fpm.d/www.conf && \
-  sed -i "s#pm.max_children = 5#pm.max_children = 4000#g" /etc/php83/php-fpm.d/www.conf && \
-  sed -i "s#pm.start_servers = 2#;pm.start_servers = 2#g" /etc/php83/php-fpm.d/www.conf && \
-  sed -i "s#;pm.process_idle_timeout = 10s;#pm.process_idle_timeout = 10s;#g" /etc/php83/php-fpm.d/www.conf && \
-  sed -i "s#;pm.max_requests = 500#pm.max_requests = 0#g" /etc/php83/php-fpm.d/www.conf && \
-  sed -i "s#zlib.output_compression = Off#zlib.output_compression = On#g" /etc/php83/php.ini
+  sed -i "s#pm = dynamic#pm = ondemand#g" /etc/php84/php-fpm.d/www.conf && \
+  sed -i "s#pm.max_children = 5#pm.max_children = 4000#g" /etc/php84/php-fpm.d/www.conf && \
+  sed -i "s#pm.start_servers = 2#;pm.start_servers = 2#g" /etc/php84/php-fpm.d/www.conf && \
+  sed -i "s#;pm.process_idle_timeout = 10s;#pm.process_idle_timeout = 10s;#g" /etc/php84/php-fpm.d/www.conf && \
+  sed -i "s#;pm.max_requests = 500#pm.max_requests = 0#g" /etc/php84/php-fpm.d/www.conf && \
+  sed -i "s#zlib.output_compression = Off#zlib.output_compression = On#g" /etc/php84/php.ini
 
 # Cleanup
 RUN echo "**** cleanup ****" && \
