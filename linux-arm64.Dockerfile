@@ -21,7 +21,8 @@ RUN echo "**** install build packages ****" && \
   apk update && \
   apk upgrade && \
   apk add --no-cache --virtual=build-dependencies \
-    tar \
+    tar && \
+  apk add --no-cache \
     openssl \
     curl \
     ca-certificates
