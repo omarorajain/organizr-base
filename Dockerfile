@@ -8,15 +8,17 @@ FROM ${BASE_IMAGE} AS base
 # ARCHITECTURE-SPECIFIC CONFIGURATION
 # ==============================================
 ARG TARGETPLATFORM
-ENV S6_REL=2.2.0.3 S6_BEHAVIOUR_IF_STAGE2_FAILS=2 TZ=Etc/UTC
+ENV S6_REL=3.2.0.2 S6_BEHAVIOUR_IF_STAGE2_FAILS=2 TZ=Etc/UTC
 
 RUN case "$TARGETPLATFORM" in \
-      "linux/amd64") echo "S6_ARCH=amd64" ;; \
-      "linux/386") echo "S6_ARCH=x86" ;; \
+      "linux/amd64") echo "S6_ARCH=x86_64" ;; \
+      "linux/386") echo "S6_ARCH=i686" ;; \
       "linux/arm/v6") echo "S6_ARCH=armhf" ;; \
       "linux/arm/v7") echo "S6_ARCH=arm" ;; \
       "linux/arm64") echo "S6_ARCH=aarch64" ;; \
-      "linux/ppc64le") echo "S6_ARCH=ppc64le" ;; \
+      "linux/ppc64le") echo "S6_ARCH=powerpc64le" ;; \
+      "linux/s390x") echo "S6_ARCH=s390x" ;; \
+      "linux/riscv64") echo "S6_ARCH=riscv64" ;; \
       *) echo "Unsupported platform: $TARGETPLATFORM" && exit 1 ;; \
     esac >> /etc/environment
 
@@ -33,12 +35,12 @@ LABEL org.label-schema.name="organizr/base" \
 # ==============================================
 # Package Installation
 # ==============================================
-RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked,id=apk-$TARGETPLATFORM \
   echo "**** install build packages ****" && \
   apk update && \
   apk upgrade && \
   apk add --no-cache --virtual=build-dependencies \
-    tar && \
+    tar xz && \
   \
   echo "**** install runtime packages ****" && \
   apk add --no-cache \
@@ -59,9 +61,18 @@ RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
   \
   echo "**** add s6 overlay ****" && \
   source /etc/environment && \
-  curl -o /tmp/s6-overlay.tar.gz -L \
-    "https://github.com/just-containers/s6-overlay/releases/download/v${S6_REL}/s6-overlay-$S6_ARCH.tar.gz" && \
-  tar xfz /tmp/s6-overlay.tar.gz -C / && \
+  curl -o /tmp/s6-overlay-noarch.tar.xz -L \
+    "https://github.com/just-containers/s6-overlay/releases/download/v${S6_REL}/s6-overlay-noarch.tar.xz" && \
+  tar -Jxpf /tmp/s6-overlay-noarch.tar.xz -C / && \
+  curl -o /tmp/s6-overlay.tar.xz -L \
+    "https://github.com/just-containers/s6-overlay/releases/download/v${S6_REL}/s6-overlay-$S6_ARCH.tar.xz" && \
+  tar -Jxpf /tmp/s6-overlay.tar.xz -C / && \
+  curl -o /tmp/s6-overlay-symlinks-noarch.tar.xz -L \
+    "https://github.com/just-containers/s6-overlay/releases/download/v${S6_REL}/s6-overlay-symlinks-noarch.tar.xz" && \
+  tar -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz -C / && \
+  curl -o /tmp/s6-overlay-symlinks-arch.tar.xz -L \
+    "https://github.com/just-containers/s6-overlay/releases/download/v${S6_REL}/s6-overlay-symlinks-arch.tar.xz" && \
+  tar -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz -C / && \
   \
   echo "**** cleanup ****" && \
   apk del --purge \
@@ -69,7 +80,7 @@ RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
   rm -f /tmp/*
 
 # Install runtime packages
-RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked,id=apk-$TARGETPLATFORM \
   echo "**** install runtime packages ****" && \
   apk add --no-cache \
     apache2-utils \
@@ -156,4 +167,4 @@ HEALTHCHECK --start-period=60s \
   CMD curl -ILfSs http://localhost:8080/nginx_status > /dev/null && \ 
       curl -ILfkSs http://localhost:8080/php_status > /dev/null || exit 1
 
-ENTRYPOINT ["/init"]
+ENTRYPOINT [ "/init" ]
