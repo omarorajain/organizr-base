@@ -2,13 +2,23 @@
 # BASE IMAGE CONFIGURATION
 # ==============================================
 ARG BASE_IMAGE=library/alpine:3.21
-FROM ${BASE_IMAGE}
+FROM ${BASE_IMAGE} AS base
 
 # ==============================================
 # ARCHITECTURE-SPECIFIC CONFIGURATION
 # ==============================================
-ARG S6_ARCH
-ENV S6_REL=2.2.0.3 S6_ARCH=${S6_ARCH} S6_BEHAVIOUR_IF_STAGE2_FAILS=2 TZ=Etc/UTC
+ARG TARGETPLATFORM
+ENV S6_REL=2.2.0.3 S6_BEHAVIOUR_IF_STAGE2_FAILS=2 TZ=Etc/UTC
+
+RUN case "$TARGETPLATFORM" in \
+      "linux/amd64") echo "S6_ARCH=amd64" ;; \
+      "linux/386") echo "S6_ARCH=x86" ;; \
+      "linux/arm/v6") echo "S6_ARCH=armhf" ;; \
+      "linux/arm/v7") echo "S6_ARCH=arm" ;; \
+      "linux/arm64") echo "S6_ARCH=aarch64" ;; \
+      "linux/ppc64le") echo "S6_ARCH=ppc64le" ;; \
+      *) echo "Unsupported platform: $TARGETPLATFORM" && exit 1 ;; \
+    esac >> /etc/environment
 
 # ==============================================
 # METADATA
@@ -18,8 +28,7 @@ LABEL org.label-schema.name="organizr/base" \
       org.label-schema.url="https://organizr.app/" \
       org.label-schema.vcs-url="https://github.com/organizr/docker-base" \
       org.label-schema.schema-version="1.0" \
-      base.s6.rel=${S6_REL} \
-      base.s6.arch=${S6_ARCH}
+      base.s6.rel=${S6_REL}
 
 # ==============================================
 # Package Installation
@@ -49,8 +58,9 @@ RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
   mv /tmp/nginx_signing.rsa.pub /etc/apk/keys/ && \
   \
   echo "**** add s6 overlay ****" && \
+  source /etc/environment && \
   curl -o /tmp/s6-overlay.tar.gz -L \
-    "https://github.com/just-containers/s6-overlay/releases/download/v${S6_REL}/s6-overlay-${S6_ARCH}.tar.gz" && \
+    "https://github.com/just-containers/s6-overlay/releases/download/v${S6_REL}/s6-overlay-$S6_ARCH.tar.gz" && \
   tar xfz /tmp/s6-overlay.tar.gz -C / && \
   \
   echo "**** cleanup ****" && \
