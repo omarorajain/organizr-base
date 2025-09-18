@@ -1,14 +1,13 @@
 # ==============================================
 # BASE IMAGE CONFIGURATION
 # ==============================================
-ARG BASE_IMAGE=library/alpine:3.21
-FROM ${BASE_IMAGE} AS base
+FROM library/alpine:3.22 AS base
 
 # ==============================================
 # ARCHITECTURE-SPECIFIC CONFIGURATION
 # ==============================================
 ARG TARGETPLATFORM
-ENV S6_REL=3.2.0.2 S6_BEHAVIOUR_IF_STAGE2_FAILS=2 TZ=Etc/UTC
+ENV S6_REL=3.2.1.0 S6_BEHAVIOUR_IF_STAGE2_FAILS=2 TZ=Etc/UTC
 
 RUN case "$TARGETPLATFORM" in \
       "linux/amd64") echo "S6_ARCH=x86_64" ;; \
@@ -87,7 +86,7 @@ RUN --mount=type=cache,target=/var/cache/apk,sharing=locked,id=apk-$TARGETPLATFO
     bash \
     coreutils \
     git \
-    libressl4.0-libssl \
+    libressl4.1-libssl \
     logrotate \
     nano \
     nginx \
