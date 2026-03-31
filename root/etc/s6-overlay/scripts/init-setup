@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv bash
 
 if [ ! -f /config/nginx/site-confs/healthcheck ]; then
   cp /defaults/healthcheck /config/nginx/site-confs/healthcheck
@@ -10,7 +10,7 @@ if [[ $(grep -c 'listen 8080' /config/nginx/site-confs/healthcheck) -eq 0 ]]; th
 fi
 
 # Copy over modified default site file
-if [ ! -f /config/nginx/site-confs/.default.rework ]  && [ -f /config/nginx/site-confs/default ]; then
+if [ ! -f /config/nginx/site-confs/.default.rework ] && [ -f /config/nginx/site-confs/default ]; then
   echo '--------------------------------------'
   echo '|      Backing up default file       |'
   echo '--------------------------------------'
@@ -42,12 +42,9 @@ elif [[ $(grep -c fastcgi_hide_header /config/nginx/site-confs/default) -ge 1 ]]
 fi
 
 # fix sites
-sed -i "s#fastcgi_pass 127.0.0.1:9000;#fastcgi_pass unix:/var/run/php7-fpm.sock;#g" /config/nginx/site-confs/healthcheck
-sed -i "s#fastcgi_pass 127.0.0.1:9000;#fastcgi_pass unix:/var/run/php7-fpm.sock;#g" /config/nginx/site-confs/default
-sed -i "s#unix:/var/run/php7-fpm.sock;#unix:/var/run/php8-fpm.sock;#g" /config/nginx/site-confs/healthcheck
-sed -i "s#unix:/var/run/php7-fpm.sock;#unix:/var/run/php8-fpm.sock;#g" /config/nginx/site-confs/default
-sed -i "s#fastcgi_pass fastcgi_pass#fastcgi_pass#g" /config/nginx/site-confs/healthcheck
-sed -i "s#fastcgi_pass fastcgi_pass#fastcgi_pass#g" /config/nginx/site-confs/default
+sed -i -E 's#fastcgi_pass (127\.0\.0\.1:9000|unix:/var/run/php[0-9]*-fpm\.sock);#fastcgi_pass unix:/var/run/php85-fpm.sock;#g' /config/nginx/site-confs/healthcheck /config/nginx/site-confs/default
+
+sed -i "s#fastcgi_pass fastcgi_pass#fastcgi_pass#g" /config/nginx/site-confs/healthcheck /config/nginx/site-confs/default
 
 # Check for the try_files line for CVE-2019-11043 and,
 # if it does not exist, add it

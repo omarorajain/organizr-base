@@ -66,20 +66,7 @@ RUN --mount=type=cache,target=/var/cache/apk,sharing=locked,id=apk-$TARGETPLATFO
   curl -o /tmp/s6-overlay.tar.xz -L \
     "https://github.com/just-containers/s6-overlay/releases/download/v${S6_REL}/s6-overlay-$S6_ARCH.tar.xz" && \
   tar -Jxpf /tmp/s6-overlay.tar.xz -C / && \
-  curl -o /tmp/s6-overlay-symlinks-noarch.tar.xz -L \
-    "https://github.com/just-containers/s6-overlay/releases/download/v${S6_REL}/s6-overlay-symlinks-noarch.tar.xz" && \
-  tar -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz -C / && \
-  curl -o /tmp/s6-overlay-symlinks-arch.tar.xz -L \
-    "https://github.com/just-containers/s6-overlay/releases/download/v${S6_REL}/s6-overlay-symlinks-arch.tar.xz" && \
-  tar -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz -C / && \
   \
-  echo "**** cleanup ****" && \
-  apk del --purge \
-    build-dependencies && \
-  rm -f /tmp/*
-
-# Install runtime packages
-RUN --mount=type=cache,target=/var/cache/apk,sharing=locked,id=apk-$TARGETPLATFORM \
   echo "**** install runtime packages ****" && \
   apk add --no-cache \
     apache2-utils \
@@ -102,6 +89,7 @@ RUN --mount=type=cache,target=/var/cache/apk,sharing=locked,id=apk-$TARGETPLATFO
     php85-pdo_sqlite \
     php85-session \
     php85-simplexml \
+    php85-sodium \
     php85-sqlite3 \
     php85-tokenizer \
     php85-xmlwriter \
@@ -109,9 +97,12 @@ RUN --mount=type=cache,target=/var/cache/apk,sharing=locked,id=apk-$TARGETPLATFO
     php85-zip \
     shadow \
     zlib \
-    tzdata
-# apk add --no-cache  --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing \
-#   php81-pecl-xmlrpc
+    tzdata && \
+    \
+  echo "**** cleanup ****" && \
+  apk del --purge \
+    build-dependencies && \
+  rm -f /tmp/*
 
 # ==============================================
 # Configuration
@@ -134,7 +125,8 @@ RUN echo "**** create abc user and make folders ****" && \
   sed -i 's#/usr/sbin/logrotate /etc/logrotate.conf#/usr/sbin/logrotate /etc/logrotate.conf -s /config/log/logrotate.status#g' /etc/periodic/daily/logrotate && \
   \
   echo "**** enable PHP-FPM ****" && \
-  sed -i "s#listen = 127.0.0.1:9000#listen = '/var/run/php8-fpm.sock'#g" /etc/php85/php-fpm.d/www.conf && \
+  ln -s /usr/bin/php85 /usr/bin/php && \
+  sed -i "s#listen = 127.0.0.1:9000#listen = '/var/run/php85-fpm.sock'#g" /etc/php85/php-fpm.d/www.conf && \
   sed -i "s#;listen.owner = nobody#listen.owner = abc#g" /etc/php85/php-fpm.d/www.conf && \
   sed -i "s#;listen.group = abc#listen.group = abc#g" /etc/php85/php-fpm.d/www.conf && \
   sed -i "s#;listen.mode = nobody#listen.mode = 0660#g" /etc/php85/php-fpm.d/www.conf && \

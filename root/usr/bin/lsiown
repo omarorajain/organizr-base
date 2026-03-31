@@ -2,8 +2,7 @@
 
 MAXDEPTH=("-maxdepth" "0")
 OPTIONS=()
-while getopts RcfvhHLP OPTION
-do
+while getopts RcfvhHLP OPTION; do
     if [[ "${OPTION}" != "?" && "${OPTION}" != "R" ]]; then
         OPTIONS+=("-${OPTION}")
     fi
@@ -14,7 +13,7 @@ done
 
 shift $((OPTIND - 1))
 OWNER=$1
-IFS=: read -r USER GROUP <<< "${OWNER}"
+IFS=: read -r USER GROUP <<<"${OWNER}"
 if [[ -z "${GROUP}" ]]; then
     printf '**** Permissions could not be set. Group is missing or incorrect, expecting user:group. ****\n'
     exit 0
