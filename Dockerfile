@@ -1,7 +1,7 @@
 # ==============================================
 # BASE IMAGE CONFIGURATION
 # ==============================================
-FROM library/alpine:3.22 AS base
+FROM library/alpine:3.23 AS base
 
 # ==============================================
 # ARCHITECTURE-SPECIFIC CONFIGURATION
@@ -86,27 +86,27 @@ RUN --mount=type=cache,target=/var/cache/apk,sharing=locked,id=apk-$TARGETPLATFO
     bash \
     coreutils \
     git \
-    libressl4.1-libssl \
+    libressl4.2-libssl \
     logrotate \
     nano \
     nginx \
-    php84 \
-    php84-curl \
-    php84-fileinfo \
-    php84-fpm \
-    php84-ftp \
-    php84-ldap \
-    php84-mbstring \
-    php84-mysqli \
-    php84-openssl \
-    php84-pdo_sqlite \
-    php84-session \
-    php84-simplexml \
-    php84-sqlite3 \
-    php84-tokenizer \
-    php84-xmlwriter \
-    php84-xml \
-    php84-zip \
+    php85 \
+    php85-curl \
+    php85-fileinfo \
+    php85-fpm \
+    php85-ftp \
+    php85-ldap \
+    php85-mbstring \
+    php85-mysqli \
+    php85-openssl \
+    php85-pdo_sqlite \
+    php85-session \
+    php85-simplexml \
+    php85-sqlite3 \
+    php85-tokenizer \
+    php85-xmlwriter \
+    php85-xml \
+    php85-zip \
     shadow \
     zlib \
     tzdata
@@ -134,18 +134,18 @@ RUN echo "**** create abc user and make folders ****" && \
   sed -i 's#/usr/sbin/logrotate /etc/logrotate.conf#/usr/sbin/logrotate /etc/logrotate.conf -s /config/log/logrotate.status#g' /etc/periodic/daily/logrotate && \
   \
   echo "**** enable PHP-FPM ****" && \
-  sed -i "s#listen = 127.0.0.1:9000#listen = '/var/run/php8-fpm.sock'#g" /etc/php84/php-fpm.d/www.conf && \
-  sed -i "s#;listen.owner = nobody#listen.owner = abc#g" /etc/php84/php-fpm.d/www.conf && \
-  sed -i "s#;listen.group = abc#listen.group = abc#g" /etc/php84/php-fpm.d/www.conf && \
-  sed -i "s#;listen.mode = nobody#listen.mode = 0660#g" /etc/php84/php-fpm.d/www.conf && \
+  sed -i "s#listen = 127.0.0.1:9000#listen = '/var/run/php8-fpm.sock'#g" /etc/php85/php-fpm.d/www.conf && \
+  sed -i "s#;listen.owner = nobody#listen.owner = abc#g" /etc/php85/php-fpm.d/www.conf && \
+  sed -i "s#;listen.group = abc#listen.group = abc#g" /etc/php85/php-fpm.d/www.conf && \
+  sed -i "s#;listen.mode = nobody#listen.mode = 0660#g" /etc/php85/php-fpm.d/www.conf && \
   \
   echo "**** set our recommended defaults ****" && \
-  sed -i "s#pm = dynamic#pm = ondemand#g" /etc/php84/php-fpm.d/www.conf && \
-  sed -i "s#pm.max_children = 5#pm.max_children = 4000#g" /etc/php84/php-fpm.d/www.conf && \
-  sed -i "s#pm.start_servers = 2#;pm.start_servers = 2#g" /etc/php84/php-fpm.d/www.conf && \
-  sed -i "s#;pm.process_idle_timeout = 10s;#pm.process_idle_timeout = 10s;#g" /etc/php84/php-fpm.d/www.conf && \
-  sed -i "s#;pm.max_requests = 500#pm.max_requests = 0#g" /etc/php84/php-fpm.d/www.conf && \
-  sed -i "s#zlib.output_compression = Off#zlib.output_compression = On#g" /etc/php84/php.ini
+  sed -i "s#pm = dynamic#pm = ondemand#g" /etc/php85/php-fpm.d/www.conf && \
+  sed -i "s#pm.max_children = 5#pm.max_children = 4000#g" /etc/php85/php-fpm.d/www.conf && \
+  sed -i "s#pm.start_servers = 2#;pm.start_servers = 2#g" /etc/php85/php-fpm.d/www.conf && \
+  sed -i "s#;pm.process_idle_timeout = 10s;#pm.process_idle_timeout = 10s;#g" /etc/php85/php-fpm.d/www.conf && \
+  sed -i "s#;pm.max_requests = 500#pm.max_requests = 0#g" /etc/php85/php-fpm.d/www.conf && \
+  sed -i "s#zlib.output_compression = Off#zlib.output_compression = On#g" /etc/php85/php.ini
 
 # ==============================================
 # RUNTIME CONFIGURATION
